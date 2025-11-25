@@ -2,6 +2,7 @@ from _pyrepl.commands import backspace
 from random import uniform
 from tkinter import *
 from tkinter import messagebox
+from database import DatabaseManager
 
 
 def center_window(win, width, height): # meant for the positioning and size of the window
@@ -40,9 +41,9 @@ class loginPage(Frame):
         password = self.password_var.get()
         
         # Temporarily disable validation - reopen after home page and database has been added
-        #if not name or not password: # validation
-         #   messagebox.showerror('Error', 'Please enter your name and password')
-          #  return
+        if not name or not password: # validation
+            messagebox.showerror('Error', 'Please enter your name and password')
+            return
 
         self.submit_callback(name, password)
 
@@ -62,29 +63,45 @@ class App(Tk):
         self.fs_logo = PhotoImage(file='fslogo.png')
         self.iconphoto(True, self.fs_logo)
 
+        self.db = DatabaseManager()
+
     def student_login(self):
         self.clear_window()
-        form= loginPage(self, "Student Login", self.submit_student)
+        form= loginPage(self, 'Student Login', self.submit_student)
         form.pack()
 
     def instructor_login(self):
         self.clear_window()
-        form= loginPage(self, "Instructor Login", self.submit_instructor)
+        form= loginPage(self, 'Instructor Login', self.submit_instructor)
         form.pack()
 
     def submit_student(self, name, password):
-        print('Student login:', name, password)
-        self.home_pg()
+        role = self.db.verify_user(name, password)
+        if role == 'student':
+            self.student_home() # redirects to student home page
+        else:
+            messagebox.showerror()
 
     def submit_instructor(self, name, password):
-        print('Instructor login:', name, password)
-        self.home_pg()
+        role = self.db.verify_user(name, password)
+        if role == 'instructor':
+            self.instructor_home() # redirects to instructor home page
+        else:
+            messagebox.showerror()
 
-    def home_pg(self):
+    def student_home(self):
         win = Toplevel(self)
         center_window(win, self.size[0], self.size[1])
-        win.title("Home")
-        Label(win, text='Welcome').pack(pady=20)
+        win.title('Home')
+        Label(win, text='Welcome Student').pack(pady=20)
+
+    def instructor_home(self):
+        win = Toplevel(self)
+        center_window(win, self.size[0], self.size[1])
+        win.title('Home')
+        Label(win, text='Welcome Instructor').pack(pady=20)
+
+    
 
     def clear_window(self):
         for widget in self.winfo_children():
@@ -114,5 +131,10 @@ class loginMenu(Menu):
 # mainloop for program execution
 if __name__ == '__main__':
    app = App('First Start', (420,200))
+
+   # sample users
+   app.db.create_user('student1', '123', 'student')
+   app.db.create_user('instructor1', '123', 'instructor')
+
    app.mainloop()
 
