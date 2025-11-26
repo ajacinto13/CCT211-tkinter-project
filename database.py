@@ -42,3 +42,4 @@ class DatabaseManager:
 		# return all user records
 		self.cursor.execute("SELECT * FROM users")
 		return self.cursor.fetchall()
+		

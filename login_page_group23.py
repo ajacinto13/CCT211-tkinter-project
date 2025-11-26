@@ -3,7 +3,9 @@ from random import uniform
 from tkinter import *
 from tkinter import messagebox
 from database import DatabaseManager
-
+from instructor_dashboard import InstructorDashboard
+from student_dashboard import StudentDashboard
+from assignment_db import AssignmentManager
 
 def center_window(win, width, height): # meant for the positioning and size of the window
     screen_width = win.winfo_screenwidth()
@@ -21,7 +23,6 @@ class loginPage(Frame):
         self.title = title
         self.submit_callback = submit_callback
 
-
         form_frame = Frame(self)
         form_frame.pack(pady=10)
 
@@ -29,9 +30,9 @@ class loginPage(Frame):
         self.password_var = StringVar()
 
         Label(form_frame, text=self.title, font=(None, 14)).grid(row=0, column=0, columnspan=2, pady=5)
-        Label(form_frame, text="Name").grid(row=1, column=0, sticky=E, padx=5, pady=5)
+        Label(form_frame, text='Name').grid(row=1, column=0, sticky=E, padx=5, pady=5)
         Entry(form_frame, textvariable=self.name_var).grid(row=1, column=1, padx=5, pady=5)
-        Label(form_frame, text="Password").grid(row=2, column=0, sticky=E, padx=5, pady=5)
+        Label(form_frame, text='Password').grid(row=2, column=0, sticky=E, padx=5, pady=5)
         Entry(form_frame, show='*', textvariable=self.password_var).grid(row=2, column=1, padx=5, pady=5)
 
         Button(self, text='Submit', command=self.on_submit).pack(pady=10)
@@ -64,6 +65,7 @@ class App(Tk):
         self.iconphoto(True, self.fs_logo)
 
         self.db = DatabaseManager()
+        self.assignment_manager = AssignmentManager()
 
     def student_login(self):
         self.clear_window()
@@ -78,14 +80,14 @@ class App(Tk):
     def submit_student(self, name, password):
         role = self.db.verify_user(name, password)
         if role == 'student':
-            self.student_home() # redirects to student home page
+            StudentDashboard(self, self.assignment_manager) # redirects to student home page
         else:
             messagebox.showerror()
 
     def submit_instructor(self, name, password):
         role = self.db.verify_user(name, password)
         if role == 'instructor':
-            self.instructor_home() # redirects to instructor home page
+            InstructorDashboard(self, self.assignment_manager) # redirects to instructor home page
         else:
             messagebox.showerror()
 
@@ -101,15 +103,10 @@ class App(Tk):
         win.title('Home')
         Label(win, text='Welcome Instructor').pack(pady=20)
 
-    
-
     def clear_window(self):
         for widget in self.winfo_children():
             if not isinstance (widget, Menu):
                 widget.destroy()
-
-
-
 
 class loginMenu(Menu):
     def __init__(self, parent, size):
@@ -123,10 +120,8 @@ class loginMenu(Menu):
         self.add_cascade(label='Login', menu=menu1)
         self.add_cascade(label='Help', menu=menu2)
 
-        menu1.add_command(label="Authorised User 1", command=self.parent.student_login)
+        menu1.add_command(label='Authorised User 1', command=self.parent.student_login)
         menu1.add_command(label='Authorized User 2', command=self.parent.instructor_login)
-
-
 
 # mainloop for program execution
 if __name__ == '__main__':
